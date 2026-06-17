@@ -4,7 +4,6 @@ import org.example.connection.Channel;
 import org.example.connection.Channel.TransmissionResult;
 import org.example.connection.Message;
 import org.example.movie.Movie;
-import org.example.movie.Category;
 import org.example.server.Server;
 
 public class Client {
@@ -21,13 +20,16 @@ public class Client {
 
   public Movie buscar(int id) {
     lastTransmission = null;
-    Movie temp = cacheManager.search(id);
+
+    TransmissionResult cacheReq = Channel.send(new Message(Message.Type.CACHE_LOOKUP, String.valueOf(id)));
+    Channel.printMetrics(cacheReq);
+    Movie temp = cacheManager.search(cacheReq);
 
     if (temp == null) {
       Message request = new Message(Message.Type.GET_MOVIE, String.valueOf(id));
       lastTransmission = Channel.send(request);
 
-      temp = server.searchWithIndex(id);
+      temp = server.searchWithIndex(lastTransmission);
 
       if (temp != null) {
         Message response = new Message(Message.Type.MOVIE_RESPONSE,
@@ -38,6 +40,10 @@ public class Client {
     }
 
     if (temp != null) {
+      String content = temp.getCategory().ordinal() + "|" + temp.getCategory().name();
+      TransmissionResult t = Channel.send(new Message(Message.Type.SPLAY_INSERT, content));
+      Channel.printMetrics(t);
+
       preferences.insert(temp.getCategory().ordinal(), temp.getCategory().name());
     }
 
@@ -45,7 +51,8 @@ public class Client {
   }
 
   public void buscarParaCache(int id) {
-    Movie temp = server.searchWithIndex(id);
+    TransmissionResult req = Channel.send(new Message(Message.Type.GET_MOVIE, String.valueOf(id)));
+    Movie temp = server.searchWithIndex(req);
     if (temp != null)
       cacheManager.add(temp);
   }
@@ -54,7 +61,7 @@ public class Client {
     Message request = new Message(Message.Type.GET_MOVIE, String.valueOf(id));
     lastTransmission = Channel.send(request);
 
-    Movie temp = server.searchWithoutIndex(id);
+    Movie temp = server.searchWithoutIndex(lastTransmission);
 
     if (temp != null) {
       Message response = new Message(Message.Type.MOVIE_RESPONSE,
@@ -80,12 +87,9 @@ public class Client {
     String favoriteCategory = preferences.getRoot().value;
 
     Message request = new Message(Message.Type.RECOMMENDATION, favoriteCategory);
-
     lastTransmission = Channel.send(request);
 
-    Category category = Category.valueOf(favoriteCategory);
-
-    Movie temp = server.searchByCategory(category);
+    Movie temp = server.searchByCategory(lastTransmission);
 
     if (temp != null) {
       lastTransmission = Channel.send(

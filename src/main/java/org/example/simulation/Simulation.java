@@ -25,8 +25,10 @@ public class Simulation {
         new Client(server),
         new Client(server)
     };
+    Channel.silent = true;
     populate();
     fillCache();
+    Channel.silent = false;
   }
 
   public void populate() {
@@ -56,29 +58,42 @@ public class Simulation {
     System.out.println("╚══════════════════════════════════════╝");
 
     for (int c = 0; c < clients.length; c++) {
-      System.out.println("\n══════════════════════════════════════");
-      System.out.println("  CLIENTE " + (c + 1));
-      System.out.println("══════════════════════════════════════");
+      Channel.silent = (c != 0);
 
-      System.out.println("\n▶ [1/4] CONSULTAS INVÁLIDAS");
-      System.out.println("─────────────────────────────────────");
+      if (!Channel.silent) {
+        System.out.println("\n══════════════════════════════════════");
+        System.out.println("  CLIENTE " + (c + 1));
+        System.out.println("══════════════════════════════════════");
+
+        System.out.println("\n▶ [1/4] CONSULTAS INVÁLIDAS");
+        System.out.println("─────────────────────────────────────");
+      }
       twoInvalid(clients[c]);
 
-      System.out.println("\n▶ [2/4] CONSULTAS NO CACHE — Hash Table + LRU");
-      System.out.println("─────────────────────────────────────");
+      if (!Channel.silent) {
+        System.out.println("\n▶ [2/4] CONSULTAS NO CACHE — Hash Table + LRU");
+        System.out.println("─────────────────────────────────────");
+      }
       sixInCache(clients[c]);
 
-      System.out.println("\n▶ [3/4] CONSULTAS SEM INDEXAÇÃO — Lista Ligada");
-      System.out.println("─────────────────────────────────────");
+      if (!Channel.silent) {
+        System.out.println("\n▶ [3/4] CONSULTAS SEM INDEXAÇÃO — Lista Ligada");
+        System.out.println("─────────────────────────────────────");
+      }
       sixValidWithoutIndex(clients[c]);
 
-      System.out.println("\n▶ [4/4] CONSULTAS COM INDEXAÇÃO — Hash Table");
-      System.out.println("─────────────────────────────────────");
+      if (!Channel.silent) {
+        System.out.println("\n▶ [4/4] CONSULTAS COM INDEXAÇÃO — Hash Table");
+        System.out.println("─────────────────────────────────────");
+      }
       sixValidWithIndex(clients[c]);
 
-      printClientSplayResults(clients[c], c + 1);
-      printLRUResults(clients[c], c + 1);
+      if (!Channel.silent) {
+        printClientSplayResults(clients[c], c + 1);
+        printLRUResults(clients[c], c + 1);
+      }
     }
+    Channel.silent = false;
 
     printServerSplayResults();
     printHuffmanDemo();
@@ -95,20 +110,24 @@ public class Simulation {
 
   private void twoInvalid(Client client) {
     client.buscar(1001);
-    System.out.println("  ✘ ID 1001 → não encontrado");
-    if (client.lastTransmission != null)
-      Channel.printMetrics(client.lastTransmission);
+    if (!Channel.silent) {
+      System.out.println("  ✘ ID 1001 → não encontrado");
+      if (client.lastTransmission != null)
+        Channel.printMetrics(client.lastTransmission);
+    }
 
     client.buscar(1002);
-    System.out.println("  ✘ ID 1002 → não encontrado");
-    if (client.lastTransmission != null)
-      Channel.printMetrics(client.lastTransmission);
+    if (!Channel.silent) {
+      System.out.println("  ✘ ID 1002 → não encontrado");
+      if (client.lastTransmission != null)
+        Channel.printMetrics(client.lastTransmission);
+    }
   }
 
   private void sixInCache(Client client) {
     for (int i = 0; i < 6; i++) {
       Movie a = client.buscar(itens[i].getId());
-      if (a != null) {
+      if (a != null && !Channel.silent) {
         System.out.println("  ✔ " + a.toStringMinor() + " | cache hit | comparações: 1");
         // Cache hit: sem transmissão ao servidor, exibe demo de LOGIN_OK
         TransmissionResult tr = Channel.send(new Message(Message.Type.LOGIN_OK, null));
@@ -120,7 +139,7 @@ public class Simulation {
   private void sixValidWithIndex(Client client) {
     for (int i = 994; i < 1000; i++) {
       Movie a = client.buscar(itens[i].getId());
-      if (a != null) {
+      if (a != null && !Channel.silent) {
         System.out.println("  ✔ " + a.toStringMinor() + " | comparações hash: " + server.lastComparisonCount);
         Channel.printMetrics(client.lastTransmission);
       }
@@ -130,7 +149,7 @@ public class Simulation {
   private void sixValidWithoutIndex(Client client) {
     for (int i = 994; i < 1000; i++) {
       Movie a = client.buscarSemIndice(itens[i].getId());
-      if (a != null) {
+      if (a != null && !Channel.silent) {
         System.out.println("  ✔ " + a.toStringMinor() + " | comparações lista: " + server.lastComparisonCount);
         Channel.printMetrics(client.lastTransmission);
       }

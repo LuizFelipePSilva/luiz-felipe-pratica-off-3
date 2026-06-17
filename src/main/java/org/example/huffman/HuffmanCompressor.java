@@ -30,6 +30,11 @@ public class HuffmanCompressor {
       }
     }
 
+    if (trees.size() == 1) {
+      HuffmanTree only = trees.poll();
+      return new HuffmanNode(only, only);
+    }
+
     while (trees.size() > 1) {
       HuffmanTree a = trees.poll();
       HuffmanTree b = trees.poll();
@@ -68,7 +73,7 @@ public class HuffmanCompressor {
           ? ((HuffmanNode) current).left
           : ((HuffmanNode) current).right;
       if (current instanceof HuffmanLeaf) {
-        sb.append((char) ((HuffmanLeaf) current).value);
+        sb.append((char) (((HuffmanLeaf) current).value & 0xFF));
         current = root;
       }
     }

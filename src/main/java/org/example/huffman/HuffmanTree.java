@@ -1,6 +1,6 @@
 package org.example.huffman;
 
-abstract class HuffmanTree implements Comparable<HuffmanTree> {
+public abstract class HuffmanTree implements Comparable<HuffmanTree> {
   public final int frequency;
 
   HuffmanTree(int frequency) {

@@ -1,6 +1,9 @@
 package org.example.client;
 
 import org.example.client.LRUList.LRUNode;
+import org.example.connection.Channel;
+import org.example.connection.Message;
+import org.example.connection.Channel.TransmissionResult;
 import org.example.movie.Movie;
 
 public class CacheManager {
@@ -23,8 +26,17 @@ public class CacheManager {
     hashTable.put(movie);
   }
 
-  public Movie search(int id) {
-    return hashTable.get(id);
+  public Movie search(TransmissionResult request) {
+    Message reqMsg = Channel.receive(request);
+    int id = Integer.parseInt(reqMsg.getContent());
+
+    Movie result = hashTable.get(id);
+
+    String content = (result != null) ? result.getId() + "|" + result.getTitle() : "MISS";
+    TransmissionResult resp = Channel.send(new Message(Message.Type.CACHE_RESPONSE, content));
+    Channel.printMetrics(resp);
+
+    return result;
   }
 
   public Movie[] getRecentTen() {

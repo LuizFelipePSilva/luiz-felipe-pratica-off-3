@@ -21,7 +21,7 @@ public class HuffmanHashTable {
   }
 
   private int hash(int key) {
-    return key % SIZE;
+    return (key & 0xFF) % SIZE;
   }
 
   public void put(int key, String value) {
