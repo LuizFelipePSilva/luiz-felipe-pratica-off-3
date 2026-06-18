@@ -58,7 +58,7 @@ public class Simulation {
     System.out.println("╚══════════════════════════════════════╝");
 
     for (int c = 0; c < clients.length; c++) {
-      Channel.silent = (c != 0);
+      Channel.silent = false;
 
       if (!Channel.silent) {
         System.out.println("\n══════════════════════════════════════");
@@ -139,9 +139,15 @@ public class Simulation {
   private void sixValidWithIndex(Client client) {
     for (int i = 994; i < 1000; i++) {
       Movie a = client.buscar(itens[i].getId());
+
       if (a != null && !Channel.silent) {
-        System.out.println("  ✔ " + a.toStringMinor() + " | comparações hash: " + server.lastComparisonCount);
-        Channel.printMetrics(client.lastTransmission);
+        System.out.println(
+            "  ✔ " + a.toStringMinor() +
+                " | comparações hash: " + server.lastComparisonCount);
+
+        if (client.lastTransmission != null) {
+          Channel.printMetrics(client.lastTransmission);
+        }
       }
     }
   }
